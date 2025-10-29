@@ -32,7 +32,7 @@ namespace HackerNewsTopApi.Services
                 return result ?? Array.Empty<int>();
             });
 
-            if (ids.Length == 0) return new List<StoryDto>();
+            if (ids == null || ids.Length == 0) return new List<StoryDto>();
 
             // 2) get details only for first N IDs from HN,
             // but they may do not have high score;
