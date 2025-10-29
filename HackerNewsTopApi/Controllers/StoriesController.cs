@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Mvc;
 using HackerNewsTopApi.Services;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HackerNewsTopApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class StoriesController : ControllerBase
     {
         private readonly IHackerNewsService _hnService;
