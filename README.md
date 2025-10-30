@@ -29,7 +29,7 @@ The application is configured to run easily using Docker and Docker Compose, whi
 ### Steps
 
 1.  **Set Environment Variables:**
-    Create a file named `.env` in the root directory (where `docker-compose.yml` is located) and define the essential JWT settings.
+    Create a file named `.env` in the root directory (into HackerNewsTopApi folder, where `docker-compose.yml` is located) and define the essential JWT settings.
 
     ```bash
     # .env file
@@ -48,6 +48,8 @@ The application is configured to run easily using Docker and Docker Compose, whi
 3.  **Access the API:**
     * **API Base URL (HTTP):** `http://localhost:5000`
     * **Swagger UI:** `http://localhost:5000/swagger`
+    * The User admin/admin is created right away to get your token. Or you can create your own new user via `/api/Auth/register`.
+    * Generate a token via `/api/Auth/login` to authenticate and get the Stories from HackerNews via `/api/Stories?count=N`, informing the number of stories you want. (Max is 200).
 
 ---
 
