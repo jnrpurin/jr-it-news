@@ -77,7 +77,11 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddControllers();
-builder.Services.AddMemoryCache();
+builder.Services.AddStackExchangeRedisCache(options =>
+{
+    options.Configuration = builder.Configuration.GetConnectionString("Redis");
+    options.InstanceName = "HackerNewsCache_";
+});
 
 // HttpClient User-Agent avoid server bloq
 builder.Services.AddHttpClient<IHackerNewsService, HackerNewsService>(client =>
@@ -87,6 +91,20 @@ builder.Services.AddHttpClient<IHackerNewsService, HackerNewsService>(client =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    try
+    {
+        await DatabaseInitializer.InitializeAsync(scope.ServiceProvider);
+    }
+    catch (Exception ex)
+    {
+        logger.LogCritical(ex, "Error on DB initialization.");
+        throw;
+    }
+}
 
 if (app.Environment.IsDevelopment())
 {
