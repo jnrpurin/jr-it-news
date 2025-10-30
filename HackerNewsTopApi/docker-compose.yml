@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: hackernews-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+    networks:
+      - hackernews-network
+    restart: unless-stopped
+  
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: hackernews-api
+    ports:
+      - "5000:8080"  # HTTP
+      - "5001:8081"  # HTTPS
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_HTTP_PORTS=8080
+      - ConnectionStrings__Redis=redis:6379
+      - ConnectionStrings__HackerNewsTopConnection=Data Source=/app/data/hacker-news-top.db
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - Jwt__ExpireMinutes=60
+    volumes:
+      - sqlite-data:/app/data
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - hackernews-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  redis-data:
+    driver: local
+  sqlite-data:
+    driver: local
+
+networks:
+  hackernews-network:
+    driver: bridge
