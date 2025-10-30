@@ -136,20 +136,35 @@ These items represent key improvements that would enhance reliability, maintaina
 
 1.  **Comprehensive Health Checks:**
     * **Improvement:** Implement detailed ASP.NET Core Health Checks, exposing an endpoint (`/health`) that verifies the connection status of **Redis**, the **SQLite database**, and the **HackerNews external API**.
-    * **Why:** Allows for better monitoring and faster detection of infrastructure failures.
 
 2.  **JWT Refresh Tokens:**
+    * **Improvement:** Ensure the JWT key is loaded *only* from environment variables. For production, use Azure Key Vault, AWS Secrets Manager, or similar secure secret management services.
     * **Improvement:** Implement a refresh token mechanism. Currently, the JWT expires in 60 minutes.
-    * **Why:** Improves user experience by allowing secure, prolonged sessions without requiring the user to re-login after token expiration.
 
 3.  **Centralized Logging and Telemetry:**
-    * **Improvement:** Integrate with a structured logging provider (e.g., Serilog) and potentially an APM tool.
-    * **Why:** Provides better visibility into errors, performance bottlenecks, and the behavior of the Polly policies and cache mechanisms in production.
+    * **Improvement:** Add `[Required]`, `[StringLength]`, and `[RegularExpression]` attributes to `Username` and `Password` properties in `LoginRequest` to enforce basic validation at the model binding stage.
+    * **Improvement:** Implement role-based access control (RBAC). Add a `Role` property to the `User` model.
+    * **Improvement:** Integrate with a structured logging provider (e.g., Serilog) and potentially an APM tool.   
 
 4.  **Optimized Story Caching (Distributed Lock):**
     * **Improvement:** Implement a **Distributed Lock** (e.g., using RedLock) during the `WarmupCacheAsync` operation.
+    * **Improvement:** Implement Pagination for Top Stories. Modify the `Get` endpoint to support `pageNumber` and `pageSize` parameters, allowing clients to retrieve stories in chunks.
     * **Why:** Prevents multiple instances of the API (in a scale-out scenario) from simultaneously attempting to warm up the cache when they start up or at the same interval, reducing unnecessary load on the external HN API.
 
 5.  **Configuration via `appsettings`:**
     * **Improvement:** Move hardcoded constants like `MaxStoriesToCache` (200), `CacheDurationMinutes` (2), and `WarmupIntervalMinutes` (2) from `HackerNewsService.cs` to the `appsettings.json` file.
     * **Why:** Simplifies configuration management and allows runtime tuning of the application without rebuilding the code.
+
+6.  **Transitioning to a Production-Ready Database:**
+    * I choose use SQLite on the application to show some other skills, such as JWT Token. This approach is straightforward and effective for development and demonstration, ensuring data persistence across container restarts.
+     However, for a production environment, it is acknowledged that SQLite has limitations, particularly concerning high concurrency and scalability. As the application grows, potential database locking issues could arise, impacting performance and reliability.
+     As a key step for future enhancement, the database backend should be migrated to a more robust, production-grade solution such as PostgreSQL, SQL Server or other.
+     This transition would offer several advantages:
+        * Improved Concurrency: Handling a higher volume of simultaneous read/write operations without performance degradation.
+        * Greater Scalability: Allowing the application to scale horizontally across multiple instances.
+        * Advanced Features: Providing more robust features for data management, security, and administration.
+        * This architectural improvement would ensure the application is prepared for the demands of a real-world, scalable service.
+     
+7.  **Integration Tests:**
+    * **Improvement:** Ensure good test coverage, especially for `AuthService`, `HackerNewsService`, and `StoriesController`.
+
