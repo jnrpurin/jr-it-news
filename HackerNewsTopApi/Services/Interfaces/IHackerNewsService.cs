@@ -1,6 +1,6 @@
 using HackerNewsTopApi.Models;
 
-namespace HackerNewsTopApi.Services
+namespace HackerNewsTopApi.Services.Interfaces
 {
     public interface IHackerNewsService
     {

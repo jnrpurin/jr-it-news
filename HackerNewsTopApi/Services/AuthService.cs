@@ -1,11 +1,9 @@
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using BCrypt.Net;
 using HackerNewsTopApi.Domain;
 using HackerNewsTopApi.Infrastructure.Interfaces;
 using HackerNewsTopApi.Services.Interfaces;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 
 namespace HackerNewsTopApi.Services

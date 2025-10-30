@@ -1,9 +1,8 @@
-//using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Caching.Distributed;
 using HackerNewsTopApi.Models;
-//using HackerNewsTopApi.Services.Interfaces;
 using Polly.CircuitBreaker;
+using HackerNewsTopApi.Services.Interfaces;
 
 namespace HackerNewsTopApi.Services
 {
