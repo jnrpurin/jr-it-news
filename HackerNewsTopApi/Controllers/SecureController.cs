@@ -7,6 +7,7 @@ namespace HackerNewsTopApi.Controllers
     [Route("api/[controller]")]
     public class SecureController : ControllerBase
     {
+        [ApiExplorerSettings(IgnoreApi = true)]
         [HttpGet("secret")]
         [Authorize]
         public IActionResult GetSecret()
