@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
-using HackerNewsTopApi.Services;
+using HackerNewsTopApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 

@@ -1,11 +1,5 @@
-using System.Text;
-using System.Security.Claims;
-using System.IdentityModel.Tokens.Jwt;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using Microsoft.EntityFrameworkCore;
 using HackerNewsTopApi.Models;
-using HackerNewsTopApi.Services;
 using HackerNewsTopApi.Services.Interfaces;
 
 namespace HackerNewsTopApi.Controllers

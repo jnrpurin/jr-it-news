@@ -1,6 +1,5 @@
 using Polly;
 using Polly.Extensions.Http;
-using Polly.CircuitBreaker;
 
 namespace HackerNewsTopApi.Infrastructure
 {
