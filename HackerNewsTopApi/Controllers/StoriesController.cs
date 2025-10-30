@@ -1,11 +1,13 @@
 using Microsoft.AspNetCore.Mvc;
 using HackerNewsTopApi.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace HackerNewsTopApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [EnableRateLimiting("HackerNewsRateLimitP1")]
     [Authorize]
     public class StoriesController : ControllerBase
     {
@@ -38,6 +40,22 @@ namespace HackerNewsTopApi.Controllers
             {
                 _logger.LogError(ex, "Error fetching top stories");
                 return StatusCode(500, new { error = "Failed to fetch stories" });
+            }
+        }
+
+        [HttpPost("warmup")]
+        public async Task<IActionResult> WarmupCache(CancellationToken ct = default)
+        {
+            try
+            {
+                _logger.LogInformation("Manual warmup requested");
+                await _hnService.WarmupCacheAsync(ct);
+                return Ok(new { message = "Cache warmup completed successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during manual cache warmup");
+                return StatusCode(500, new { error = "Failed to warmup cache" });
             }
         }
     }

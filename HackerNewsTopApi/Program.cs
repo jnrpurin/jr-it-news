@@ -3,11 +3,13 @@ using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
-using HackerNewsTopApi.Infrastructure.Data;
-using HackerNewsTopApi.Infrastructure.Interfaces;
+using Microsoft.AspNetCore.RateLimiting;
 using HackerNewsTopApi.Services;
 using HackerNewsTopApi.Services.Interfaces;
-
+using HackerNewsTopApi.Infrastructure;
+using HackerNewsTopApi.Infrastructure.Data;
+using HackerNewsTopApi.Infrastructure.Interfaces;
+using Polly;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,6 +77,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddHostedService<CacheWarmupHostedService>();
 
 builder.Services.AddControllers();
 builder.Services.AddStackExchangeRedisCache(options =>
@@ -83,12 +86,39 @@ builder.Services.AddStackExchangeRedisCache(options =>
     options.InstanceName = "HackerNewsCache_";
 });
 
+builder.Services.AddRateLimiter(options =>
+{
+    options.AddFixedWindowLimiter("HackerNewsRateLimitP1", opt =>
+    {
+        opt.Window = TimeSpan.FromMinutes(1);
+        opt.PermitLimit = 60;
+        opt.QueueLimit = 10;
+    });
+});
+
 // HttpClient User-Agent avoid server bloq
 builder.Services.AddHttpClient<IHackerNewsService, HackerNewsService>(client =>
 {
     client.DefaultRequestHeaders.UserAgent.ParseAdd("HackerNewsTopApi/1.0"); // (contact@yourdomain)
-    client.Timeout = TimeSpan.FromSeconds(10);
-});
+    client.Timeout = TimeSpan.FromSeconds(30);
+})
+.AddPolicyHandler((services, request) =>
+{
+    // Adiciona logger ao contexto do Polly
+    var logger = services.GetRequiredService<ILogger<Program>>();
+    var context = new Context
+    {
+        ["Logger"] = logger
+    };
+
+    // Timeout + Circuit Breaker + Retry
+    return Policy.WrapAsync(
+        PollyConfiguration.GetTimeoutPolicy(),
+        PollyConfiguration.GetCircuitBreakerPolicy(),
+        PollyConfiguration.GetRetryPolicy()
+    ).WithPolicyKey("HackerNewsApiPolicy");
+})
+;
 
 var app = builder.Build();
 
