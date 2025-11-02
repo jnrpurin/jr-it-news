@@ -136,6 +136,8 @@ The design emphasizes **performance**, **stability**, and **decoupling**.
 
 These items represent key improvements that would enhance reliability, maintainability, and user experience if development time allowed:
 
+* on going improvements found into branch: feature/improve-cache-uniform-int-restfull 
+
 1.  **Comprehensive Health Checks:**
     * **Improvement:** Implement detailed ASP.NET Core Health Checks, exposing an endpoint (`/health`) that verifies the connection status of **Redis**, the **SQLite database**, and the **HackerNews external API**.
 
