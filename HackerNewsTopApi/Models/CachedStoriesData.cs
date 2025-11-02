@@ -1,3 +1,5 @@
+using HackerNewsTopApi.Models.DTOs;
+
 namespace HackerNewsTopApi.Models
 {
     /// <summary>

@@ -1,4 +1,4 @@
-namespace HackerNewsTopApi.Models
+namespace HackerNewsTopApi.Models.DTOs
 {
     public class StoryDto
     {

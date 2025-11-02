@@ -3,6 +3,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using HackerNewsTopApi.Models;
 using Polly.CircuitBreaker;
 using HackerNewsTopApi.Services.Interfaces;
+using HackerNewsTopApi.Models.DTOs;
 
 namespace HackerNewsTopApi.Services
 {

@@ -1,4 +1,5 @@
 using HackerNewsTopApi.Models;
+using HackerNewsTopApi.Models.DTOs;
 
 namespace HackerNewsTopApi.Services.Interfaces
 {

@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using HackerNewsTopApi.Models;
+using HackerNewsTopApi.Models.DTOs;
 using HackerNewsTopApi.Services;
 
 namespace HackerNewsTopApi.Tests.ServicesTests
