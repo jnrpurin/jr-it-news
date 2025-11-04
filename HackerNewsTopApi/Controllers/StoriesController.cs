@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using HackerNewsTopApi.Services.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
+using System.ComponentModel.DataAnnotations;
 
 namespace HackerNewsTopApi.Controllers
 {
@@ -20,42 +21,80 @@ namespace HackerNewsTopApi.Controllers
             _logger = logger;
         }
 
-        // GET /api/stories?count=10
+        /// <summary>
+        /// Returns the main stories from Hacker News.
+        /// </summary>
         [HttpGet]
-        public async Task<IActionResult> Get([FromQuery] int count = 10, CancellationToken ct = default)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status499ClientClosedRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ResponseCache(Duration = 30, Location = ResponseCacheLocation.Any)]
+        public async Task<ActionResult<IEnumerable<object>>> GetTopStories([FromQuery][Range(1, 200)] int count = 10, CancellationToken ct = default)
         {
-            if (count <= 0) return BadRequest(new { error = "count must be > 0" });
-            if (count > 200) return BadRequest(new { error = "count too large (max 200)" });
+            if (!ModelState.IsValid)
+            {
+                return ValidationProblem(ModelState);
+            }
 
             try
             {
                 var top = await _hnService.GetTopStoriesAsync(count, ct);
+
+                if (top == null || !top.Any())
+                    return NotFound(Problem(
+                        title: "No stories found",
+                        statusCode: StatusCodes.Status404NotFound,
+                        detail: "No stories were returned from Hacker News."));
+
+                // Head to track it
+                Response.Headers["X-Request-ID"] = Guid.NewGuid().ToString("N");
+
                 return Ok(top);
             }
             catch (OperationCanceledException)
             {
-                return StatusCode(499); // client closed request
+                return StatusCode(499, Problem(
+                    title: "Client closed request",
+                    statusCode: 499,
+                    detail: "The client cancelled the request."));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error fetching top stories");
-                return StatusCode(500, new { error = "Failed to fetch stories" });
+                return Problem(
+                    title: "Failed to fetch stories",
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status500InternalServerError);
             }
         }
 
-        [HttpPost("warmup")]
-        public async Task<IActionResult> WarmupCache(CancellationToken ct = default)
+        /// <summary>
+        /// Forces manual heating of the story cache.
+        /// </summary>
+        [HttpPost("cache:warmup")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult> WarmupCache(CancellationToken ct = default)
         {
             try
             {
-                _logger.LogInformation("Manual warmup requested");
+                _logger.LogInformation("Manual cache warmup requested");
                 await _hnService.WarmupCacheAsync(ct);
-                return Ok(new { message = "Cache warmup completed successfully" });
+
+                return Ok(new
+                {
+                    message = "Cache warmup completed successfully",
+                    timestamp = DateTime.UtcNow
+                });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during manual cache warmup");
-                return StatusCode(500, new { error = "Failed to warmup cache" });
+                return Problem(
+                    title: "Cache warmup failed",
+                    detail: ex.Message,
+                    statusCode: StatusCodes.Status500InternalServerError);
             }
         }
     }
